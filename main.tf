@@ -12,22 +12,11 @@ terraform {
 }
 
 provider "cloudflare" {
-  email     = var.cloudflare_email
-  api_key   = var.cloudflare_api_key
+  email   = var.cloudflare_email
+  api_key = var.cloudflare_api_key
 }
 
 provider "local" {
-}
-
-variable "cloudflare_email" {
-  description = "Cloudflare account email"
-  type        = string
-}
-
-variable "cloudflare_api_key" {
-  description = "Cloudflare Global API Key"
-  type        = string
-  sensitive   = true
 }
 
 # Set terraform backend to local and disable state locking to ensure read-only
