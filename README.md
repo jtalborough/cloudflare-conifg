@@ -1,49 +1,111 @@
-# Cloudflare Configuration Backup
+# Cloudflare Configuration for designbuildautomate.io
 
-This repository contains Terraform configurations to manage and backup Cloudflare settings for designbuildautomate.io.
+This repository contains the complete Terraform configuration for managing Cloudflare settings for designbuildautomate.io. It includes DNS records, zone settings, and Zero Trust configurations.
 
-## Features
+## Repository Structure
 
-- Zone settings management
-- DNS records backup
-- SSL/TLS configuration
-- Page rules backup
-- Zero Trust settings (planned)
+- `dns.tf` - DNS records and zone settings
+- `dns_records.tf` - Additional DNS-related configurations
+- `zero_trust.tf` - Zero Trust settings
+- `main.tf` - Main Terraform configuration
+- `variables.tf` - Variable definitions
+- `terraform.tfvars` - Variable values (gitignored)
 
 ## Prerequisites
 
-- Terraform >= 1.0
-- Cloudflare account with Global API key
-- Domain configured in Cloudflare
+1. Terraform installed (version ~> 1.5.0)
+2. Cloudflare account with:
+   - API Token
+   - Account Email
+   - Account ID
 
-## Setup
+## Local Setup
 
-1. Clone this repository
-2. Copy `terraform.tfvars.example` to `terraform.tfvars`
-3. Add your Cloudflare credentials to `terraform.tfvars`:
-   ```hcl
-   cloudflare_email    = "your-email@example.com"
-   cloudflare_api_key  = "your-global-api-key"
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/jtalborough/cloudflare-conifg.git
+   cd cloudflare-conifg
    ```
-4. Initialize Terraform:
+
+2. Create `terraform.tfvars` file:
+   ```hcl
+   cloudflare_api_token = "your-api-token"
+   cloudflare_email     = "your-email"
+   cloudflare_account_id = "your-account-id"
+   ```
+
+3. Initialize Terraform:
    ```bash
    terraform init
    ```
-5. Apply the configuration:
+
+## Making Changes
+
+### Local Development
+
+1. Create a new branch:
    ```bash
-   terraform apply
+   git checkout -b your-feature-branch
    ```
 
-## Security Notes
+2. Make your changes to the configuration files
 
-- Never commit `terraform.tfvars` or any JSON files containing sensitive data
-- All sensitive files are included in `.gitignore`
-- Use environment variables for CI/CD pipelines
+3. Test your changes:
+   ```bash
+   terraform fmt      # Format code
+   terraform validate # Validate configuration
+   terraform plan    # Preview changes
+   ```
 
-## Files
+4. Commit and push your changes:
+   ```bash
+   git add .
+   git commit -m "description of changes"
+   git push origin your-feature-branch
+   ```
 
-- `main.tf` - Provider configuration
-- `dns_records.tf` - DNS records configuration
-- `zone.tf` - Zone settings
-- `variables.tf` - Variable definitions
-- `terraform.tfvars.example` - Example variables file
+5. Create a Pull Request on GitHub
+
+### Automated Workflow
+
+This repository uses GitHub Actions for automated testing and deployment:
+
+1. On Pull Request:
+   - Runs format checks
+   - Validates configuration
+   - Generates and displays plan
+   - Adds plan output to PR comments
+
+2. On Merge to Main:
+   - Automatically applies changes to production
+
+## GitHub Secrets
+
+The following secrets need to be set in your GitHub repository:
+
+- `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
+- `CLOUDFLARE_EMAIL` - Your Cloudflare account email
+- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+
+## Files Generated
+
+- `cloudflare_config.json` - Current Cloudflare configuration
+- `dns_records.json` - DNS records export
+- `page_rules.json` - Page rules configuration
+- `zone_settings.json` - Zone settings export
+
+## Utility Scripts
+
+- `fetch_dns.sh` - Script to fetch current DNS records from Cloudflare
+
+## Best Practices
+
+1. Always create a new branch for changes
+2. Use meaningful commit messages
+3. Review the `terraform plan` output carefully
+4. Use Pull Requests for all production changes
+5. Keep sensitive information in `terraform.tfvars` (gitignored)
+
+## Support
+
+For issues or questions, please create a GitHub issue in this repository.
