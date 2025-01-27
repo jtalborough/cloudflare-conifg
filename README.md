@@ -2,26 +2,46 @@
 
 This repository contains the Terraform configurations for managing Cloudflare resources for designbuildautomate.io. All changes to the Cloudflare configuration should be made through this repository.
 
+## Repository Structure
+
+```
+.
+├── .github/
+│   └── workflows/
+│       └── apply.yml      # CI/CD pipeline
+├── scripts/
+│   ├── fetch_cloudflare_config.sh  # Fetch all Cloudflare configs
+│   ├── fetch_tunnels.sh            # Fetch tunnel configurations
+│   └── fetch_zero_trust.sh         # Fetch Zero Trust settings
+├── terraform/
+│   ├── dns.tf            # DNS records and page rules
+│   ├── tunnels.tf        # Cloudflare Tunnel configurations
+│   ├── variables.tf      # Variable definitions
+│   ├── zero_trust.tf     # Zero Trust settings
+│   └── zone_settings.tf  # Zone-level configurations
+└── README.md
+```
+
 ## Components
 
-### DNS Management (`dns.tf`)
+### DNS Management (`terraform/dns.tf`)
 - A records for main services
 - CNAME records for Cloudflare Tunnels
 - Email configuration (MX, DKIM, SPF)
 - Page rules for redirects
 
-### Zero Trust (`zero_trust.tf`)
+### Zero Trust (`terraform/zero_trust.tf`)
 - Access applications configuration
 - Access policies
 - Identity providers (Google OAuth)
 
-### Zone Settings (`zone_settings.tf`)
+### Zone Settings (`terraform/zone_settings.tf`)
 - SSL/TLS configuration
 - Security settings
 - Performance optimizations
 - Network configurations
 
-### Tunnels (`tunnels.tf`)
+### Tunnels (`terraform/tunnels.tf`)
 - AutomateEverything tunnel
 - Chat tunnel
 - Perfect tunnel
@@ -30,7 +50,7 @@ This repository contains the Terraform configurations for managing Cloudflare re
 ## Setup
 
 1. Clone this repository
-2. Create a `terraform.tfvars` file with the following variables:
+2. Create `terraform/terraform.tfvars` file with the following variables:
    ```hcl
    cloudflare_email = "your-email"
    cloudflare_api_key = "your-api-key"
@@ -51,19 +71,15 @@ The repository includes a GitHub Actions workflow that automatically:
 
 ### Manual Deployment
 ```bash
-# Initialize Terraform
+cd terraform
 terraform init
-
-# Preview changes
 terraform plan
-
-# Apply changes
 terraform apply
 ```
 
 ## Scripts
 
-### `fetch_cloudflare_config.sh`
+### `scripts/fetch_cloudflare_config.sh`
 Fetches current Cloudflare configurations including:
 - DNS records
 - Zone settings
@@ -71,7 +87,7 @@ Fetches current Cloudflare configurations including:
 - Workers
 - Access service tokens
 
-### `fetch_tunnels.sh`
+### `scripts/fetch_tunnels.sh`
 Fetches configurations for all Cloudflare Tunnels.
 
 ## Security
@@ -83,7 +99,7 @@ Fetches configurations for all Cloudflare Tunnels.
 1. Always make changes through this repository, not directly in Cloudflare UI
 2. Review terraform plan output before applying changes
 3. Use meaningful commit messages describing the changes
-4. Keep secrets in `terraform.tfvars` and never commit this file
+4. Keep secrets in `terraform/terraform.tfvars` and never commit this file
 
 ## Maintenance
 1. Regularly update Terraform provider versions

@@ -1,24 +1,28 @@
-name: 'Terraform'
+name: "Terraform"
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pull-requests: write
-
 env:
   TF_LOG: INFO
+  TF_CLOUD_ORGANIZATION: "your-org"
+  TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  TF_WORKSPACE: "cloudflare-config"
+  CONFIG_DIRECTORY: "./terraform"
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: "Terraform"
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      pull-requests: write
 
     defaults:
       run:
@@ -36,35 +40,39 @@ jobs:
     - name: Terraform Format
       id: fmt
       run: terraform fmt -check
+      working-directory: ${{ env.CONFIG_DIRECTORY }}
       continue-on-error: true
 
     - name: Terraform Init
       id: init
+      run: terraform init
+      working-directory: ${{ env.CONFIG_DIRECTORY }}
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-      run: terraform init
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
     - name: Terraform Validate
       id: validate
       run: terraform validate -no-color
+      working-directory: ${{ env.CONFIG_DIRECTORY }}
 
     - name: Terraform Plan
       id: plan
+      if: github.event_name == 'pull_request'
+      run: terraform plan -no-color
+      working-directory: ${{ env.CONFIG_DIRECTORY }}
+      continue-on-error: true
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-        TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_email: ${{ secrets.CLOUDFLARE_EMAIL }}
-        TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      run: terraform plan -no-color
-      continue-on-error: true
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
     - name: Update Pull Request
       uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
       env:
-        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        PLAN: "${{ steps.plan.outputs.stdout }}"
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -72,15 +80,17 @@ jobs:
           #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
           #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
           #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
+          
           <details><summary>Show Plan</summary>
-
+          
           \`\`\`\n
           ${process.env.PLAN}
           \`\`\`
-
-          </details>`;
-
+          
+          </details>
+          
+          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+          
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -88,12 +98,15 @@ jobs:
             body: output
           })
 
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false
+      working-directory: ${{ env.CONFIG_DIRECTORY }}
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-        TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_email: ${{ secrets.CLOUDFLARE_EMAIL }}
-        TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      run: terraform apply -auto-approve
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
