@@ -1,111 +1,92 @@
-# Cloudflare Configuration for designbuildautomate.io
+# Cloudflare Infrastructure as Code
 
-This repository contains the complete Terraform configuration for managing Cloudflare settings for designbuildautomate.io. It includes DNS records, zone settings, and Zero Trust configurations.
+This repository contains the Terraform configurations for managing Cloudflare resources for designbuildautomate.io. All changes to the Cloudflare configuration should be made through this repository.
 
-## Repository Structure
+## Components
 
-- `dns.tf` - DNS records and zone settings
-- `dns_records.tf` - Additional DNS-related configurations
-- `zero_trust.tf` - Zero Trust settings
-- `main.tf` - Main Terraform configuration
-- `variables.tf` - Variable definitions
-- `terraform.tfvars` - Variable values (gitignored)
+### DNS Management (`dns.tf`)
+- A records for main services
+- CNAME records for Cloudflare Tunnels
+- Email configuration (MX, DKIM, SPF)
+- Page rules for redirects
 
-## Prerequisites
+### Zero Trust (`zero_trust.tf`)
+- Access applications configuration
+- Access policies
+- Identity providers (Google OAuth)
 
-1. Terraform installed (version ~> 1.5.0)
-2. Cloudflare account with:
-   - API Token
-   - Account Email
-   - Account ID
+### Zone Settings (`zone_settings.tf`)
+- SSL/TLS configuration
+- Security settings
+- Performance optimizations
+- Network configurations
 
-## Local Setup
+### Tunnels (`tunnels.tf`)
+- AutomateEverything tunnel
+- Chat tunnel
+- Perfect tunnel
+- Lab Environment tunnel with multiple services
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/jtalborough/cloudflare-conifg.git
-   cd cloudflare-conifg
-   ```
+## Setup
 
-2. Create `terraform.tfvars` file:
+1. Clone this repository
+2. Create a `terraform.tfvars` file with the following variables:
    ```hcl
-   cloudflare_api_token = "your-api-token"
-   cloudflare_email     = "your-email"
+   cloudflare_email = "your-email"
+   cloudflare_api_key = "your-api-key"
    cloudflare_account_id = "your-account-id"
+   tunnel_secret_automate_everything = "tunnel-secret"
+   tunnel_secret_chat = "tunnel-secret"
+   tunnel_secret_perfect = "tunnel-secret"
+   tunnel_secret_lab = "tunnel-secret"
    ```
 
-3. Initialize Terraform:
-   ```bash
-   terraform init
-   ```
+## Usage
 
-## Making Changes
+### GitHub Actions Workflow
+The repository includes a GitHub Actions workflow that automatically:
+1. Validates Terraform configurations
+2. Generates a plan
+3. Applies changes when merged to main
 
-### Local Development
+### Manual Deployment
+```bash
+# Initialize Terraform
+terraform init
 
-1. Create a new branch:
-   ```bash
-   git checkout -b your-feature-branch
-   ```
+# Preview changes
+terraform plan
 
-2. Make your changes to the configuration files
+# Apply changes
+terraform apply
+```
 
-3. Test your changes:
-   ```bash
-   terraform fmt      # Format code
-   terraform validate # Validate configuration
-   terraform plan    # Preview changes
-   ```
+## Scripts
 
-4. Commit and push your changes:
-   ```bash
-   git add .
-   git commit -m "description of changes"
-   git push origin your-feature-branch
-   ```
+### `fetch_cloudflare_config.sh`
+Fetches current Cloudflare configurations including:
+- DNS records
+- Zone settings
+- WAF rules
+- Workers
+- Access service tokens
 
-5. Create a Pull Request on GitHub
+### `fetch_tunnels.sh`
+Fetches configurations for all Cloudflare Tunnels.
 
-### Automated Workflow
-
-This repository uses GitHub Actions for automated testing and deployment:
-
-1. On Pull Request:
-   - Runs format checks
-   - Validates configuration
-   - Generates and displays plan
-   - Adds plan output to PR comments
-
-2. On Merge to Main:
-   - Automatically applies changes to production
-
-## GitHub Secrets
-
-The following secrets need to be set in your GitHub repository:
-
-- `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
-- `CLOUDFLARE_EMAIL` - Your Cloudflare account email
-- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
-
-## Files Generated
-
-- `cloudflare_config.json` - Current Cloudflare configuration
-- `dns_records.json` - DNS records export
-- `page_rules.json` - Page rules configuration
-- `zone_settings.json` - Zone settings export
-
-## Utility Scripts
-
-- `fetch_dns.sh` - Script to fetch current DNS records from Cloudflare
+## Security
+- Sensitive values are stored as GitHub Secrets
+- API keys and tunnel secrets are marked as sensitive in Terraform
+- Zero Trust access is enforced for all applications
 
 ## Best Practices
+1. Always make changes through this repository, not directly in Cloudflare UI
+2. Review terraform plan output before applying changes
+3. Use meaningful commit messages describing the changes
+4. Keep secrets in `terraform.tfvars` and never commit this file
 
-1. Always create a new branch for changes
-2. Use meaningful commit messages
-3. Review the `terraform plan` output carefully
-4. Use Pull Requests for all production changes
-5. Keep sensitive information in `terraform.tfvars` (gitignored)
-
-## Support
-
-For issues or questions, please create a GitHub issue in this repository.
+## Maintenance
+1. Regularly update Terraform provider versions
+2. Monitor GitHub Actions workflow for any failures
+3. Review access policies periodically
+4. Keep tunnel configurations in sync with local setups
